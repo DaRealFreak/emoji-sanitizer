@@ -54,3 +54,16 @@ func (o unicodeVersion) GetValue() interface{} {
 func UnicodeVersion(version string) Option {
 	return unicodeVersion(version)
 }
+
+type offlineFallback bool
+
+// GetValue implements the option interface method
+func (o offlineFallback) GetValue() interface{} {
+	return bool(o)
+}
+
+// FallbackToOffline is the option to fall back to loading the emoji data offline
+// this option won't have any effect if you don't use the LoadFromOnline option
+func FallbackToOffline(useOfflineFallback bool) Option {
+	return offlineFallback(useOfflineFallback)
+}

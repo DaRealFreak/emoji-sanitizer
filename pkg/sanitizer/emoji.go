@@ -54,10 +54,26 @@ func NewSanitizer(sanitizerOptions ...options.Option) (*Sanitizer, error) {
 
 	// if no version is defined we set the version option to the latest version
 	if version := sanitizer.getOption(options.UnicodeVersion("")); version == nil {
-		sanitizer.options = append(sanitizerOptions, options.UnicodeVersion(VersionLatest))
+		sanitizer.options = append(sanitizer.options, options.UnicodeVersion(VersionLatest))
 	}
 
 	if err := sanitizer.loadUnicodeEmojiPattern(); err != nil {
+		if sanitizer.isOptionSet(options.LoadFromOnline(true)) &&
+			sanitizer.isOptionSet(options.FallbackToOffline(true)) {
+			// update option to set load from online to false
+			for i, setOption := range sanitizer.options {
+				if fmt.Sprintf("%T", options.LoadFromOnline(true)) == fmt.Sprintf("%T", setOption) {
+					sanitizer.options[i] = options.LoadFromOnline(false)
+					break
+				}
+			}
+
+			// retry to load the unicode emoji pattern
+			if err := sanitizer.loadUnicodeEmojiPattern(); err == nil {
+				return sanitizer, nil
+			}
+		}
+
 		return nil, err
 	}
 
