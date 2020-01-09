@@ -3,8 +3,11 @@ package sanitizer
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"os"
 	"regexp"
 	"strings"
 
@@ -39,20 +42,16 @@ const (
 
 // Sanitizer provides an option to sanitize unicode emoji runes based on the version and options
 type Sanitizer struct {
-	version           string
-	options           []options.Option
-	regexpPattern     *regexp.Regexp
-	AllowedEmojiCodes []string
+	version       string
+	options       []options.Option
+	regexpPattern *regexp.Regexp
 }
 
 // NewSanitizer initializes the sanitizer, loads the unicode data and applies the options
 func NewSanitizer(version string, options ...options.Option) (*Sanitizer, error) {
 	sanitizer := &Sanitizer{
-		// AllowedEmojiCodes contains the allowed emojis, which are by default:
-		// "#", "*", "[0-9]", "©", "®", "‼", "™"
-		AllowedEmojiCodes: []string{"0023", "002A", "0030..0039", "00A9", "00AE", "203C", "2122"},
-		version:           version,
-		options:           options,
+		version: version,
+		options: options,
 	}
 
 	if err := sanitizer.loadUnicodeEmojiPattern(); err != nil {
@@ -60,6 +59,16 @@ func NewSanitizer(version string, options ...options.Option) (*Sanitizer, error)
 	}
 
 	return sanitizer, nil
+}
+
+func (s *Sanitizer) getOption(option options.Option) options.Option {
+	for _, setOptions := range s.options {
+		if fmt.Sprintf("%T", option) == fmt.Sprintf("%T", setOptions) {
+			return setOptions
+		}
+	}
+
+	return nil
 }
 
 func (s *Sanitizer) isOptionSet(option options.Option) bool {
@@ -72,31 +81,10 @@ func (s *Sanitizer) isOptionSet(option options.Option) bool {
 	return false
 }
 
-func (s *Sanitizer) loadUnicodeEmojiPattern() (err error) {
-	var content []byte
-
-	if s.isOptionSet(options.LoadFromOnline(true)) {
-		emojiURL := fmt.Sprintf(EmojiDataURLPath, s.version)
-
-		// #nosec G107
-		res, err := http.Get(emojiURL)
-		if err != nil {
-			return err
-		}
-
-		content, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-	} else {
-		if s.version == VersionLatest {
-			s.version = versionLatestOffline
-		}
-
-		content, err = ioutil.ReadFile(fmt.Sprintf("emoji_data/%s/emoji-data.txt", s.version))
-		if err != nil {
-			return err
-		}
+func (s *Sanitizer) loadUnicodeEmojiPattern() error {
+	content, err := s.getEmojiDataContent()
+	if err != nil {
+		return err
 	}
 
 	var emojiUnicodeValues []string
@@ -130,11 +118,64 @@ func (s *Sanitizer) loadUnicodeEmojiPattern() (err error) {
 	return err
 }
 
+func (s *Sanitizer) getEmojiDataContent() ([]byte, error) {
+	if customPath := s.getOption(options.LoadFromCustomPath("")); customPath != nil {
+		u, err := url.Parse(fmt.Sprintf("%v", customPath.GetValue()))
+		if err != nil {
+			return nil, err
+		}
+
+		var (
+			r    io.ReadCloser
+			resp *http.Response
+		)
+
+		// If it's a URL
+		if u.Scheme == "http" || u.Scheme == "https" {
+			resp, err = http.Get(fmt.Sprintf("%v", customPath.GetValue()))
+			if err != nil {
+				return nil, err
+			}
+
+			r = resp.Body
+		} else {
+			r, err = os.Open(fmt.Sprintf("%v", customPath.GetValue()))
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return ioutil.ReadAll(r)
+	}
+
+	if s.isOptionSet(options.LoadFromOnline(true)) {
+		emojiURL := fmt.Sprintf(EmojiDataURLPath, s.version)
+
+		// #nosec G107
+		res, err := http.Get(emojiURL)
+		if err != nil {
+			return nil, err
+		}
+
+		return ioutil.ReadAll(res.Body)
+	}
+
+	if s.version == VersionLatest {
+		s.version = versionLatestOffline
+	}
+
+	return ioutil.ReadFile(fmt.Sprintf("emoji_data/%s/emoji-data.txt", s.version))
+}
+
 // isEmojiCodeAllowed checks the whitelist for allowed unicode emojis
 func (s *Sanitizer) isEmojiCodeAllowed(unicodeCode string) bool {
-	for _, allowedUnicodeCode := range s.AllowedEmojiCodes {
-		if allowedUnicodeCode == unicodeCode {
-			return true
+	if codes := s.getOption(options.AllowEmojiCodes([]string{})); codes != nil {
+		if w, ok := codes.GetValue().([]string); ok {
+			for _, allowedUnicodeCode := range w {
+				if allowedUnicodeCode == unicodeCode {
+					return true
+				}
+			}
 		}
 	}
 
