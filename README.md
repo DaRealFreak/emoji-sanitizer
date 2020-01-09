@@ -8,7 +8,10 @@ The usage is fairly simple. You generate a sanitizer and can sanitize passed str
 A minimalistic usage:
 ```go
 sanitizer, err := NewSanitizer()
-sanitizer.StripUnicodeEmojis("Test string 😆😆😆 😛", "[e]")
+// this will return "Test string [e][e][e] [e]"
+sanitizer.ReplaceUnicodeEmojis("Test string 😆😆😆 😛", "[e]")
+// this will return: "Test string  "
+sanitizer.StripUnicodeEmojis("Test string 😆😆😆 😛")
 ```
 
 You can also set multiple options to further configure the sanitization.
