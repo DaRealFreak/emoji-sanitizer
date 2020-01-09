@@ -54,6 +54,14 @@ sanitizer, err := NewSanitizer(
 )
 ```
 
+To reduce the error proneness you can further set the option to fallback to the offline approach should an error occur while loading the emoji data.
+```go
+sanitizer, err := NewSanitizer(
+    options.LoadFromOnline(true),
+    options.FallbackToOffline(true),
+)
+```
+
 ### Allow specific unicode emoji runes
 In case you want to allow specific unicode emoji runes you can allow specific runes/ranges.  
 Best shown in the example of basic runes which are categorized as emoji:  
@@ -65,7 +73,6 @@ sanitizer, err := NewSanitizer(
     options.AllowEmojiCodes([]string{"0023", "002A", "0030..0039", "00A9", "00AE", "203C", "2122"}),
 )
 ```
-
 
 ## Development
 Want to contribute? Great!  
