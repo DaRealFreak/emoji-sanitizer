@@ -42,16 +42,19 @@ const (
 
 // Sanitizer provides an option to sanitize unicode emoji runes based on the version and options
 type Sanitizer struct {
-	version       string
 	options       []options.Option
 	regexpPattern *regexp.Regexp
 }
 
 // NewSanitizer initializes the sanitizer, loads the unicode data and applies the options
-func NewSanitizer(version string, options ...options.Option) (*Sanitizer, error) {
+func NewSanitizer(sanitizerOptions ...options.Option) (*Sanitizer, error) {
 	sanitizer := &Sanitizer{
-		version: version,
-		options: options,
+		options: sanitizerOptions,
+	}
+
+	// if no version is defined we set the version option to the latest version
+	if version := sanitizer.getOption(options.UnicodeVersion("")); version == nil {
+		sanitizer.options = append(sanitizerOptions, options.UnicodeVersion(VersionLatest))
 	}
 
 	if err := sanitizer.loadUnicodeEmojiPattern(); err != nil {
@@ -59,6 +62,10 @@ func NewSanitizer(version string, options ...options.Option) (*Sanitizer, error)
 	}
 
 	return sanitizer, nil
+}
+
+func (s *Sanitizer) getUnicodeVersion() string {
+	return fmt.Sprintf("%v", s.getOption(options.UnicodeVersion(VersionLatest)).GetValue())
 }
 
 func (s *Sanitizer) getOption(option options.Option) options.Option {
@@ -149,7 +156,7 @@ func (s *Sanitizer) getEmojiDataContent() ([]byte, error) {
 	}
 
 	if s.isOptionSet(options.LoadFromOnline(true)) {
-		emojiURL := fmt.Sprintf(EmojiDataURLPath, s.version)
+		emojiURL := fmt.Sprintf(EmojiDataURLPath, s.getUnicodeVersion())
 
 		// #nosec G107
 		res, err := http.Get(emojiURL)
@@ -160,11 +167,12 @@ func (s *Sanitizer) getEmojiDataContent() ([]byte, error) {
 		return ioutil.ReadAll(res.Body)
 	}
 
-	if s.version == VersionLatest {
-		s.version = versionLatestOffline
+	version := s.getUnicodeVersion()
+	if version == VersionLatest {
+		version = versionLatestOffline
 	}
 
-	return ioutil.ReadFile(fmt.Sprintf("emoji_data/%s/emoji-data.txt", s.version))
+	return ioutil.ReadFile(fmt.Sprintf("emoji_data/%s/emoji-data.txt", version))
 }
 
 // isEmojiCodeAllowed checks the whitelist for allowed unicode emojis

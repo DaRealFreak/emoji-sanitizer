@@ -41,3 +41,16 @@ func (o allowEmojiCodes) GetValue() interface{} {
 func AllowEmojiCodes(codes []string) Option {
 	return allowEmojiCodes(codes)
 }
+
+type unicodeVersion string
+
+// GetValue implements the option interface method
+func (o unicodeVersion) GetValue() interface{} {
+	return string(o)
+}
+
+// UnicodeVersion is the option to set a specific unicode version to load
+// this option won't have any effect if you load the emoji data from a custom path
+func UnicodeVersion(version string) Option {
+	return unicodeVersion(version)
+}

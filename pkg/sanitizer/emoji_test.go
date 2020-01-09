@@ -9,7 +9,7 @@ import (
 
 func TestNewSanitizer(t *testing.T) {
 	// load the emoji data from offline
-	sanitizer, err := NewSanitizer(VersionLatest, options.LoadFromOnline(false))
+	sanitizer, err := NewSanitizer(options.LoadFromOnline(false))
 	assert.New(t).NoError(err)
 	assert.New(t).NotNil(sanitizer)
 	assert.New(t).Equal(
@@ -18,7 +18,16 @@ func TestNewSanitizer(t *testing.T) {
 	)
 
 	// load the emoji data from online (https://unicode.org/)
-	sanitizer, err = NewSanitizer(VersionLatest, options.LoadFromOnline(true))
+	sanitizer, err = NewSanitizer(options.LoadFromOnline(true))
+	assert.New(t).NoError(err)
+	assert.New(t).NotNil(sanitizer)
+	assert.New(t).Equal(
+		"Test string  ",
+		sanitizer.StripUnicodeEmojis("Test string 😆😆😆 😛#123"),
+	)
+
+	// load the emoji data from custom path (https://unicode.org/)
+	sanitizer, err = NewSanitizer(options.LoadFromCustomPath("https://unicode.org/Public/emoji/latest/emoji-data.txt"))
 	assert.New(t).NoError(err)
 	assert.New(t).NotNil(sanitizer)
 	assert.New(t).Equal(
@@ -27,7 +36,7 @@ func TestNewSanitizer(t *testing.T) {
 	)
 
 	sanitizer, err = NewSanitizer(
-		VersionLatest,
+		options.UnicodeVersion(VersionLatest),
 		// use offline data
 		options.LoadFromOnline(false),
 		// general emoji codes which are normally allowed in most contexts
