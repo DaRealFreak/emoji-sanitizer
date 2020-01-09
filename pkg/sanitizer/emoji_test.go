@@ -18,7 +18,10 @@ func TestNewSanitizer(t *testing.T) {
 	)
 
 	// load the emoji data from online (https://unicode.org/)
-	sanitizer, err = NewSanitizer(options.LoadFromOnline(true))
+	sanitizer, err = NewSanitizer(
+		options.LoadFromOnline(true),
+		options.UseFallbackToOffline(true),
+	)
 	assert.New(t).NoError(err)
 	assert.New(t).NotNil(sanitizer)
 	assert.New(t).Equal(

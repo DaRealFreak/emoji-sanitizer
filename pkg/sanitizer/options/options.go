@@ -62,8 +62,8 @@ func (o offlineFallback) GetValue() interface{} {
 	return bool(o)
 }
 
-// FallbackToOffline is the option to fall back to loading the emoji data offline
+// UseFallbackToOffline is the option to fall back to loading the emoji data offline should an error occur
 // this option won't have any effect if you don't use the LoadFromOnline option
-func FallbackToOffline(useOfflineFallback bool) Option {
+func UseFallbackToOffline(useOfflineFallback bool) Option {
 	return offlineFallback(useOfflineFallback)
 }

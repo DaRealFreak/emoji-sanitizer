@@ -59,7 +59,7 @@ func NewSanitizer(sanitizerOptions ...options.Option) (*Sanitizer, error) {
 
 	if err := sanitizer.loadUnicodeEmojiPattern(); err != nil {
 		if sanitizer.isOptionSet(options.LoadFromOnline(true)) &&
-			sanitizer.isOptionSet(options.FallbackToOffline(true)) {
+			sanitizer.isOptionSet(options.UseFallbackToOffline(true)) {
 			// update option to set load from online to false
 			for i, setOption := range sanitizer.options {
 				if fmt.Sprintf("%T", options.LoadFromOnline(true)) == fmt.Sprintf("%T", setOption) {
