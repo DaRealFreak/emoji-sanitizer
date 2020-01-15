@@ -36,8 +36,8 @@ const (
 
 	versionLatestOffline = Version121
 
-	// EmojiDataURLPath is the URL path to load the emoji-data from when choosing online mode
-	EmojiDataURLPath = "https://unicode.org/Public/emoji/%s/emoji-data.txt"
+	// emojiDataURLPath is the URL path to load the emoji-data from when choosing online mode
+	emojiDataURLPath = "https://unicode.org/Public/emoji/%s/emoji-data.txt"
 )
 
 // Sanitizer provides an option to sanitize unicode emoji runes based on the version and options
@@ -172,7 +172,7 @@ func (s *Sanitizer) getEmojiDataContent() ([]byte, error) {
 	}
 
 	if s.isOptionSet(options.LoadFromOnline(true)) {
-		emojiURL := fmt.Sprintf(EmojiDataURLPath, s.getUnicodeVersion())
+		emojiURL := fmt.Sprintf(emojiDataURLPath, s.getUnicodeVersion())
 
 		// #nosec G107
 		res, err := http.Get(emojiURL)
