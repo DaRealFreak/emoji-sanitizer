@@ -29,7 +29,7 @@ func TestNewSanitizer(t *testing.T) {
 		sanitizer.StripUnicodeEmojis("Test string 😆😆😆 😛#123"),
 	)
 
-	// load the emoji data from custom path (https://unicode.org/)
+	// load from existing custom online path (https://unicode.org/)
 	sanitizer, err = NewSanitizer(options.LoadFromCustomPath("https://unicode.org/Public/emoji/latest/emoji-data.txt"))
 	assert.New(t).NoError(err)
 	assert.New(t).NotNil(sanitizer)
@@ -37,6 +37,25 @@ func TestNewSanitizer(t *testing.T) {
 		"Test string  ",
 		sanitizer.StripUnicodeEmojis("Test string 😆😆😆 😛#123"),
 	)
+
+	// load from not existing custom online path
+	sanitizer, err = NewSanitizer(options.LoadFromCustomPath("https://unicode.org/Public/emoji/nope/emoji-data.txt"))
+	assert.New(t).Error(err)
+	assert.New(t).Nil(sanitizer)
+
+	// load from existing custom offline path
+	sanitizer, err = NewSanitizer(options.LoadFromCustomPath("emoji_data/12.1/emoji-data.txt"))
+	assert.New(t).NoError(err)
+	assert.New(t).NotNil(sanitizer)
+	assert.New(t).Equal(
+		"Test string  ",
+		sanitizer.StripUnicodeEmojis("Test string 😆😆😆 😛#123"),
+	)
+
+	// load from not existing custom offline path
+	sanitizer, err = NewSanitizer(options.LoadFromCustomPath("emoji_data/not-existing-version/emoji-data.txt"))
+	assert.New(t).Error(err)
+	assert.New(t).Nil(sanitizer)
 
 	sanitizer, err = NewSanitizer(
 		options.UnicodeVersion(VersionLatest),
