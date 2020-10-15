@@ -30,7 +30,7 @@ func TestNewSanitizer(t *testing.T) {
 	)
 
 	// load from existing custom online path (https://unicode.org/)
-	sanitizer, err = NewSanitizer(options.LoadFromCustomPath("https://unicode.org/Public/emoji/latest/emoji-data.txt"))
+	sanitizer, err = NewSanitizer(options.LoadFromCustomPath("https://unicode.org/Public/13.0.0/ucd/emoji/emoji-data.txt"))
 	assert.New(t).NoError(err)
 	assert.New(t).NotNil(sanitizer)
 	assert.New(t).Equal(
@@ -44,7 +44,7 @@ func TestNewSanitizer(t *testing.T) {
 	assert.New(t).Nil(sanitizer)
 
 	// load from existing custom offline path
-	sanitizer, err = NewSanitizer(options.LoadFromCustomPath("emoji_data/12.1/emoji-data.txt"))
+	sanitizer, err = NewSanitizer(options.LoadFromCustomPath("emoji_data/13.0.0/emoji-data.txt"))
 	assert.New(t).NoError(err)
 	assert.New(t).NotNil(sanitizer)
 	assert.New(t).Equal(
