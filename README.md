@@ -26,18 +26,18 @@ sanitizer, err := NewSanitizer(
 ```
 
 currently offline available are following versions:  
-1.0, 2.0, 3.0, 4.0, 5.0, 11.0, 12.0, 12.1  
+1.0, 2.0, 3.0, 4.0, 5.0, 11.0, 12.0, 12.1, 13.0, 13.1 
 All of those are taken from https://unicode.org/Public/emoji/
 
 If you are using the online option you can also instantly use other versions when they get released.
 
-By default the version is set to the currently newest version: 12.1
+By default the version is set to the currently newest version: 13.1
 
 ### Emoji Data from custom path
 You can load the emoji data from whatever path you want with the option:
 ```go
 sanitizer, err := NewSanitizer(
-    options.LoadFromCustomPath("https://unicode.org/Public/emoji/latest/emoji-data.txt"),
+    options.LoadFromCustomPath("https://unicode.org/Public/13.0.0/ucd/emoji/emoji-data.txt"),
 )
 ```
 
