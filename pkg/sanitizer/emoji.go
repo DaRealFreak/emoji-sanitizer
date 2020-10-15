@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/DaRealFreak/emoji-sanitizer/pkg/sanitizer/options"
@@ -31,13 +32,20 @@ const (
 	Version120 = "12.0"
 	// Version121 is the path segment for version 12.1
 	Version121 = "12.1"
+	// Version130 is the path segment for version 13.0
+	Version130 = "13.0.0"
+	// Version131 is the path segment for version 13.1 (emoji-data is the same as 13.0)
+	Version131 = "13.0.0"
 	// VersionLatest is the path segment for the latest version
 	VersionLatest = "latest"
 
-	versionLatestOffline = Version121
+	versionLatestOffline = Version131
+
+	// olderEmojiDataURLPath is the URL path to loader emoji-data from older versions from when choosing online mode
+	olderEmojiDataURLPath = "https://unicode.org/Public/emoji/%s/emoji-data.txt"
 
 	// emojiDataURLPath is the URL path to load the emoji-data from when choosing online mode
-	emojiDataURLPath = "https://unicode.org/Public/emoji/%s/emoji-data.txt"
+	emojiDataURLPath = "https://unicode.org/Public/%s/ucd/emoji/emoji-data.txt"
 )
 
 // Sanitizer provides an option to sanitize unicode emoji runes based on the version and options
@@ -172,7 +180,14 @@ func (s *Sanitizer) getEmojiDataContent() ([]byte, error) {
 	}
 
 	if s.isOptionSet(options.LoadFromOnline(true)) {
-		emojiURL := fmt.Sprintf(emojiDataURLPath, s.getUnicodeVersion())
+		urlPath := emojiDataURLPath
+
+		majorVersion := strings.Split(s.getUnicodeVersion(), ".")[0]
+		if v, err := strconv.Atoi(majorVersion); err == nil && v < 13 {
+			urlPath = olderEmojiDataURLPath
+		}
+
+		emojiURL := fmt.Sprintf(urlPath, s.getUnicodeVersion())
 
 		// #nosec G107
 		res, err := http.Get(emojiURL)
