@@ -200,6 +200,10 @@ func (s *Sanitizer) getEmojiDataContent() ([]byte, error) {
 			return nil, err
 		}
 
+		if res.StatusCode != 200 {
+			return nil, fmt.Errorf("returned status code is not 200")
+		}
+
 		return ioutil.ReadAll(res.Body)
 	}
 
