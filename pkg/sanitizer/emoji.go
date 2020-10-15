@@ -63,6 +63,11 @@ func NewSanitizer(sanitizerOptions ...options.Option) (*Sanitizer, error) {
 	// if no version is defined we set the version option to the latest version
 	if version := sanitizer.getOption(options.UnicodeVersion("")); version == nil {
 		sanitizer.options = append(sanitizer.options, options.UnicodeVersion(VersionLatest))
+
+		// if we append the latest version add the fallback to the offline mode to reduce error proneness if not already configured
+		if fallback := sanitizer.getOption(options.UseFallbackToOffline(true)); fallback == nil {
+			sanitizer.options = append(sanitizer.options, options.UseFallbackToOffline(true))
+		}
 	}
 
 	if err := sanitizer.loadUnicodeEmojiPattern(); err != nil {
